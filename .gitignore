@@ -19,6 +19,8 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Virtual environments
 venv/
 ENV/
 env/
@@ -43,7 +45,14 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
-# Sekha
+# Byte-compiled
+*.pyc
+*.pyo
+
+# Pytest
+.pytest_cache/
+
+# Sekha specific
 config.toml
 .env
 *.db
