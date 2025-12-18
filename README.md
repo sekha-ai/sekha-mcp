@@ -1,17 +1,23 @@
-"AI Memory Controller - For important things, that actually need to be completed and not dumped because a context window was exceeded. For problems that actually need to be solved."
+# Sekha LLM Bridge
 
-**Tagline**: *"For important things that actually need to be completed. For problems that actually need to be solved."*
+Python service for LLM operations (embeddings, summarization, importance scoring, entity extraction).
 
-We believe:
-- Your conversations are your intellectual property.
-- Memory should be sovereign, not rented.
-- Simplicity is a feature, not a compromise.
-- No single company should own your cognitive history.
+## Quick Start
 
-We are building the universal memory layer because
-the alternative is a future of forgetful assistants
-and knowledge locked in silos.
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-This is the missing piece that makes AI truly useful.
-For important things that actually need to be completed.
-For problems that actually need to be solved.
+# Start Ollama (if not running)
+ollama serve
+
+# Pull required models
+ollama pull nomic-embed-text:latest
+ollama pull llama3.1:8b
+
+# Start the bridge
+python main.py
+
+# Or with Docker
+docker build -t sekha-llm-bridge .
+docker run -p 5001:5001 --network host sekha-llm-bridge
