@@ -1,276 +1,68 @@
-import asyncio
-import json
-from typing import Any, Dict, List
+"""Sekha MCP Server Implementation"""
 
-import httpx
+import asyncio
+import logging
 from mcp.server import Server
-from mcp.types import Tool, ToolInputSchema, TextContent
+from mcp.server.stdio import stdio_server
 
 from config import settings
+from .tools.memory_store import memory_store_tool, MEMORY_STORE_TOOL
+from .tools.memory_search import memory_search_tool, MEMORY_SEARCH_TOOL
+from .tools.memory_update import memory_update_tool, MEMORY_UPDATE_TOOL
+from .tools.memory_get_context import memory_get_context_tool, MEMORY_GET_CONTEXT_TOOL
+from .tools.memory_prune import memory_prune_tool, MEMORY_PRUNE_TOOL
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, settings.log_level),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
-server = Server("sekha-mcp")
+# Create MCP server
+app = Server(settings.server_name)
 
 
-# ================================
-# Tool definitions
-# ================================
-
-TOOLS: List[Tool] = [
-    Tool(
-        name="memory_store",
-        description="Store a new conversation with messages into the Sekha controller.",
-        input_schema=ToolInputSchema.json_schema(
-            {
-                "type": "object",
-                "properties": {
-                    "label": {"type": "string"},
-                    "folder": {"type": "string"},
-                    "messages": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "role": {"type": "string"},
-                                "content": {"type": "string"},
-                            },
-                            "required": ["role", "content"],
-                        },
-                    },
-                },
-                "required": ["label", "folder", "messages"],
-            }
-        ),
-    ),
-    Tool(
-        name="memory_search",
-        description="Semantic search over stored conversations.",
-        input_schema=ToolInputSchema.json_schema(
-            {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string"},
-                    "limit": {"type": "integer", "default": 10},
-                },
-                "required": ["query"],
-            }
-        ),
-    ),
-    Tool(
-        name="memory_update",
-        description="Update label and/or folder of an existing conversation.",
-        input_schema=ToolInputSchema.json_schema(
-            {
-                "type": "object",
-                "properties": {
-                    "conversation_id": {"type": "string"},
-                    "label": {"type": "string"},
-                    "folder": {"type": "string"},
-                },
-                "required": ["conversation_id"],
-            }
-        ),
-    ),
-    Tool(
-        name="memory_get_context",
-        description="Assemble relevant context for a query from stored conversations.",
-        input_schema=ToolInputSchema.json_schema(
-            {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string"},
-                    "context_budget": {"type": "integer", "default": 4000},
-                    "preferred_labels": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "default": [],
-                    },
-                },
-                "required": ["query"],
-            }
-        ),
-    ),
-    Tool(
-        name="memory_prune",
-        description="Get pruning suggestions for old or low-importance conversations.",
-        input_schema=ToolInputSchema.json_schema(
-            {
-                "type": "object",
-                "properties": {
-                    "threshold_days": {"type": "integer", "default": 90},
-                },
-                "required": ["threshold_days"],
-            }
-        ),
-    ),
-    Tool(
-        name="memory_query",
-        description="Deprecated: general query over memory; uses the /api/v1/query endpoint.",
-        input_schema=ToolInputSchema.json_schema(
-            {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string"},
-                    "limit": {"type": "integer", "default": 10},
-                },
-                "required": ["query"],
-            }
-        ),
-    ),
-]
-
-
-@server.list_tools()
-async def list_tools() -> List[Tool]:
-    return TOOLS
-
-
-# ================================
-# Helper: HTTP client to controller
-# ================================
-
-async def controller_client() -> httpx.AsyncClient:
-    """
-    Create an HTTP client configured for the Rust controller.
-    Uses bearer token from settings.mcp_api_key.
-    """
-    headers = {
-        "Authorization": f"Bearer {settings.mcp_api_key}",
-        "Content-Type": "application/json",
-    }
-    return httpx.AsyncClient(
-        base_url=settings.controller_base_url,
-        headers=headers,
-        timeout=15.0,
-    )
-
-
-def _tool_result(data: Any) -> List[TextContent]:
-    """
-    Wrap raw JSON-serializable data into MCP TextContent.
-    MCP tools return a list of content parts.
-    """
+@app.list_tools()
+async def list_tools():
+    """Register available MCP tools"""
     return [
-        TextContent(
-            type="text",
-            text=json.dumps(data, ensure_ascii=False),
-        )
+        MEMORY_STORE_TOOL,
+        MEMORY_SEARCH_TOOL,
+        MEMORY_UPDATE_TOOL,
+        MEMORY_GET_CONTEXT_TOOL,
+        MEMORY_PRUNE_TOOL,
     ]
 
 
-# ================================
-# Tool handlers
-# ================================
-
-@server.call_tool("memory_store")
-async def tool_memory_store(args: Dict[str, Any]):
-    """
-    Forward to POST /api/v1/conversations
-    Body: { label, folder, messages }
-    """
-    async with await controller_client() as client:
-        resp = await client.post("/api/v1/conversations", json=args)
-        resp.raise_for_status()
-        data = resp.json()
-    return _tool_result(data)
-
-
-@server.call_tool("memory_search")
-async def tool_memory_search(args: Dict[str, Any]):
-    """
-    Forward to POST /api/v1/query
-    Body: { query, limit }
-    """
-    payload = {
-        "query": args["query"],
-        "limit": args.get("limit", 10),
+@app.call_tool()
+async def call_tool(name: str, arguments: dict):
+    """Route tool calls to appropriate handlers"""
+    logger.info(f"Tool called: {name}")
+    
+    tools = {
+        "memory_store": memory_store_tool,
+        "memory_search": memory_search_tool,
+        "memory_update": memory_update_tool,
+        "memory_get_context": memory_get_context_tool,
+        "memory_prune": memory_prune_tool,
     }
-    async with await controller_client() as client:
-        resp = await client.post("/api/v1/query", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-    return _tool_result(data)
+    
+    if name not in tools:
+        raise ValueError(f"Unknown tool: {name}")
+    
+    return await tools[name](arguments)
 
 
-@server.call_tool("memory_update")
-async def tool_memory_update(args: Dict[str, Any]):
-    """
-    Forward to PUT /api/v1/conversations/{id}/label
-    Body: { label?, folder? }
-    """
-    conv_id = args["conversation_id"]
-    body: Dict[str, Any] = {}
-    if "label" in args:
-        body["label"] = args["label"]
-    if "folder" in args:
-        body["folder"] = args["folder"]
-
-    async with await controller_client() as client:
-        resp = await client.put(f"/api/v1/conversations/{conv_id}/label", json=body)
-        resp.raise_for_status()
-        data = resp.json()
-    return _tool_result(data)
+async def main():
+    """Start MCP server using stdio transport"""
+    logger.info(f"🚀 Starting {settings.server_name} v{settings.server_version}")
+    logger.info(f"📡 Connected to Sekha Controller: {settings.controller_url}")
+    
+    async with stdio_server() as (read_stream, write_stream):
+        await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
-@server.call_tool("memory_get_context")
-async def tool_memory_get_context(args: Dict[str, Any]):
-    """
-    Forward to POST /api/v1/context/assemble
-    Body: { query, preferred_labels, context_budget }
-    """
-    payload = {
-        "query": args["query"],
-        "preferred_labels": args.get("preferred_labels", []),
-        "context_budget": args.get("context_budget", 4000),
-    }
-    async with await controller_client() as client:
-        resp = await client.post("/api/v1/context/assemble", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-    return _tool_result(data)
-
-
-@server.call_tool("memory_prune")
-async def tool_memory_prune(args: Dict[str, Any]):
-    """
-    Forward to POST /api/v1/prune/dry-run
-    Body: { threshold_days }
-    """
-    payload = {
-        "threshold_days": args.get("threshold_days", 90),
-    }
-    async with await controller_client() as client:
-        resp = await client.post("/api/v1/prune/dry-run", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-    return _tool_result(data)
-
-
-@server.call_tool("memory_query")
-async def tool_memory_query(args: Dict[str, Any]):
-    """
-    Deprecated alias of memory_search.
-    Forward to POST /api/v1/query
-    Body: { query, limit }
-    """
-    payload = {
-        "query": args["query"],
-        "limit": args.get("limit", 10),
-    }
-    async with await controller_client() as client:
-        resp = await client.post("/api/v1/query", json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-    return _tool_result(data)
-
-
-# ================================
-# Entry points
-# ================================
-
-async def amain():
-    await server.run_stdio()
-
-
-def main():
-    asyncio.run(amain())
+if __name__ == "__main__":
+    asyncio.run(main())
