@@ -1,27 +1,44 @@
 name: MCP Server CI
 
+
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+  workflow_dispatch:
+
+
+env:
+  PYTHON_VERSION: "3.11"
+
 
 jobs:
-  test:
+  lint:
+    name: Lint and Format Check
     runs-on: ubuntu-latest
-    
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov ruff black
+          pip install ruff black mypy
           pip install -r requirements.txt
 
       - name: Run ruff linting
@@ -30,14 +47,240 @@ jobs:
       - name: Run black formatting check
         run: black --check .
 
-      - name: Test with pytest
+      - name: Run mypy type checking
+        run: mypy . --ignore-missing-imports
+        continue-on-error: true
 
+
+  test:
+    name: Test with Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
         run: |
-          pytest tests/ -v --cov=. --cov-report=xml
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: |
+          pytest tests/ -v --cov=. --cov-report=xml --cov-report=term-missing
+
+      - name: Check coverage threshold
+        if: matrix.python-version == '3.11'
+        run: |
+          coverage report --fail-under=80
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           flags: unittests
-          name: codecov-umbrella
+          name: mcp-server-py${{ matrix.python-version }}
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+
+  integration-test:
+    name: Integration Test with Controller
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      chroma:
+        image: chromadb/chroma:latest
+        ports:
+          - 8000:8000
+        options: >-
+          --health-cmd="curl -f http://localhost:8000/api/v1/heartbeat"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout sekha-mcp
+        uses: actions/checkout@v4
+        with:
+          repository: sekha-ai/sekha-mcp
+          path: mcp
+
+      - name: Checkout sekha-controller
+        uses: actions/checkout@v4
+        with:
+          repository: sekha-ai/sekha-controller
+          path: controller
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build controller
+        working-directory: controller
+        run: cargo build --release
+
+      - name: Start controller
+        working-directory: controller
+        env:
+          SEKHA_PORT: 8080
+          CHROMA_HOST: http://localhost:8000
+          REDIS_HOST: redis://localhost:6379/0
+          SEKHA_API_KEY: test-token-123
+        run: |
+          ./target/release/sekha-controller &
+          CONTROLLER_PID=$!
+          echo "CONTROLLER_PID=$CONTROLLER_PID" >> $GITHUB_ENV
+          sleep 5
+          curl -f http://localhost:8080/health || exit 1
+          echo "Controller is healthy"
+
+      - name: Install MCP dependencies
+        working-directory: mcp
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run integration tests
+        working-directory: mcp
+        env:
+          CONTROLLER_URL: http://localhost:8080
+          SEKHA_API_KEY: test-token-123
+        run: |
+          if [ -d "tests/integration" ]; then
+            pytest tests/integration/ -v
+          else
+            echo "Creating smoke test..."
+            mkdir -p tests/integration
+            cat > tests/integration/test_smoke.py << 'EOFMARKER'
+          import requests
+          import pytest
+
+          def test_controller_health():
+              response = requests.get('http://localhost:8080/health')
+              assert response.status_code == 200
+
+          def test_mcp_memory_store():
+              response = requests.post(
+                  'http://localhost:8080/mcp/tools/memory_store',
+                  headers={
+                      'Authorization': 'Bearer test-token-123',
+                      'Content-Type': 'application/json'
+                  },
+                  json={
+                      'label': 'Test',
+                      'folder': '/test',
+                      'messages': [{'role': 'user', 'content': 'Test'}]
+                  }
+              )
+              assert response.status_code == 200
+          EOFMARKER
+            pip install requests
+            pytest tests/integration/ -v
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ ! -z "$CONTROLLER_PID" ]; then
+            kill $CONTROLLER_PID || true
+          fi
+
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit
+          pip install -r requirements.txt
+
+      - name: Run safety check
+        run: safety check --json
+        continue-on-error: true
+
+      - name: Run bandit security linter
+        run: bandit -r . -f json -o bandit-report.json --exclude ./tests
+        continue-on-error: true
+
+      - name: Upload bandit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+
+
+  status-check:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [lint, test, security, integration-test]
+    if: always()
+
+    steps:
+      - name: Check status
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ]; then
+            echo "Linting failed"
+            exit 1
+          fi
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            echo "Tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.integration-test.result }}" == "failure" ]; then
+            echo "Integration tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.security.result }}" == "failure" ]; then
+            echo "Security audit had issues"
+          fi
+          echo "All required checks passed"
