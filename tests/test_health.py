@@ -1,37 +1,47 @@
+"""Health check tests for Sekha MCP Server"""
+
 import pytest
-from fastapi.testclient import TestClient
-from main import app
+from unittest.mock import AsyncMock, patch
+from sekha_mcp.health import check_controller_health, HealthStatus
 
-client = TestClient(app)
 
-def test_health_endpoint():
-    """Test that the health endpoint returns 200"""
-    response = client.get("/health")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "healthy"
-    assert "timestamp" in data
+@pytest.mark.asyncio
+async def test_controller_health_check_success():
+    """Test successful health check"""
+    with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get:
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.json = AsyncMock(return_value={"status": "healthy"})
+        mock_get.return_value = mock_response
+        
+        health = await check_controller_health()
+        
+        assert health.status == "healthy"
+        assert health.controller_reachable is True
+        assert health.error is None
 
-def test_summarize_endpoint_mock():
-    """Test that the summarize endpoint exists and responds"""
-    response = client.post(
-        "/summarize",
-        json={
-            "messages": [{"role": "user", "content": "test"}],
-            "model": "test-model"
-        }
+
+@pytest.mark.asyncio
+async def test_controller_health_check_unreachable():
+    """Test health check when controller is unreachable"""
+    with patch('httpx.AsyncClient.get', new_callable=AsyncMock) as mock_get:
+        mock_get.side_effect = Exception("Connection refused")
+        
+        health = await check_controller_health()
+        
+        assert health.status == "unhealthy"
+        assert health.controller_reachable is False
+        assert "Connection refused" in health.error
+
+
+def test_health_status_model():
+    """Test HealthStatus model"""
+    health = HealthStatus(
+        status="healthy",
+        controller_reachable=True,
+        controller_url="http://localhost:8080"
     )
-    # Will return 500 if Ollama not configured, but endpoint exists
-    assert response.status_code in [200, 500]
-
-def test_embedding_endpoint_mock():
-    """Test that the embedding endpoint exists and responds"""
-    response = client.post(
-        "/embeddings",
-        json={
-            "text": "test text",
-            "model": "test-model"
-        }
-    )
-    # Will return 500 if Ollama not configured, but endpoint exists
-    assert response.status_code in [200, 500]
+    
+    assert health.status == "healthy"
+    assert health.controller_reachable is True
+    assert health.controller_url == "http://localhost:8080"

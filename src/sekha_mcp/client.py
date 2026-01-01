@@ -4,7 +4,7 @@ import httpx
 import logging
 from typing import Dict, Any, List, Optional
 
-from config import settings
+from .config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ class SekhaClient:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
+        self.controller_url = settings.controller_url
     
     async def store_conversation(self, conversation: Dict[str, Any]) -> Dict[str, Any]:
         """Store a new conversation"""
@@ -52,6 +53,21 @@ class SekhaClient:
                 f"{self.base_url}/mcp/tools/memory_search",
                 json=payload,
                 headers=self.headers
+            )
+            response.raise_for_status()
+            return response.json()
+    
+    async def get_stats(self, folder: Optional[str] = None) -> Dict[str, Any]:
+        """Get memory statistics"""
+        params = {}
+        if folder:
+            params["folder"] = folder
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.get(
+                f"{self.controller_url}/api/v1/stats",
+                headers=self.headers,
+                params=params
             )
             response.raise_for_status()
             return response.json()

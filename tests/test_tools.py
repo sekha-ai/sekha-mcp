@@ -3,11 +3,13 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 
-from sekha_llm_bridge.tools.memory_store import memory_store_tool
-from sekha_llm_bridge.tools.memory_search import memory_search_tool
-from sekha_llm_bridge.tools.memory_update import memory_update_tool
-from sekha_llm_bridge.tools.memory_get_context import memory_get_context_tool
-from sekha_llm_bridge.tools.memory_prune import memory_prune_tool
+from sekha_mcp.tools.memory_store import memory_store_tool
+from sekha_mcp.tools.memory_search import memory_search_tool
+from sekha_mcp.tools.memory_update import memory_update_tool
+from sekha_mcp.tools.memory_get_context import memory_get_context_tool
+from sekha_mcp.tools.memory_prune import memory_prune_tool
+from sekha_mcp.tools.memory_export import memory_export_tool
+from sekha_mcp.tools.memory_stats import memory_stats_tool
 
 
 # ============================================
@@ -17,7 +19,7 @@ from sekha_llm_bridge.tools.memory_prune import memory_prune_tool
 @pytest.mark.asyncio
 async def test_memory_store_success():
     """Test successful memory store"""
-    with patch('src.sekha_mcp.client.sekha_client.store_conversation', new=AsyncMock()) as mock_store:
+    with patch('sekha_mcp.client.sekha_client.store_conversation', new=AsyncMock()) as mock_store:
         mock_store.return_value = {
             "success": True,
             "data": {
@@ -47,7 +49,7 @@ async def test_memory_store_success():
 @pytest.mark.asyncio
 async def test_memory_store_failure():
     """Test memory store failure handling"""
-    with patch('src.sekha_mcp.client.sekha_client.store_conversation', new=AsyncMock()) as mock_store:
+    with patch('sekha_mcp.client.sekha_client.store_conversation', new=AsyncMock()) as mock_store:
         mock_store.side_effect = Exception("Network error")
         
         arguments = {
@@ -69,7 +71,7 @@ async def test_memory_store_failure():
 @pytest.mark.asyncio
 async def test_memory_search_with_results():
     """Test memory search with results"""
-    with patch('src.sekha_mcp.client.sekha_client.search_memory', new=AsyncMock()) as mock_search:
+    with patch('sekha_mcp.client.sekha_client.search_memory', new=AsyncMock()) as mock_search:
         mock_search.return_value = {
             "success": True,
             "data": {
@@ -104,7 +106,7 @@ async def test_memory_search_with_results():
 @pytest.mark.asyncio
 async def test_memory_search_no_results():
     """Test memory search with no results"""
-    with patch('src.sekha_mcp.client.sekha_client.search_memory', new=AsyncMock()) as mock_search:
+    with patch('sekha_mcp.client.sekha_client.search_memory', new=AsyncMock()) as mock_search:
         mock_search.return_value = {
             "success": True,
             "data": {"results": []}
@@ -120,7 +122,7 @@ async def test_memory_search_no_results():
 @pytest.mark.asyncio
 async def test_memory_search_with_filters():
     """Test memory search with label filters"""
-    with patch('src.sekha_mcp.client.sekha_client.search_memory', new=AsyncMock()) as mock_search:
+    with patch('sekha_mcp.client.sekha_client.search_memory', new=AsyncMock()) as mock_search:
         mock_search.return_value = {
             "success": True,
             "data": {"results": []}
@@ -147,7 +149,7 @@ async def test_memory_search_with_filters():
 @pytest.mark.asyncio
 async def test_memory_update_success():
     """Test successful memory update"""
-    with patch('src.sekha_mcp.client.sekha_client.update_conversation', new=AsyncMock()) as mock_update:
+    with patch('sekha_mcp.client.sekha_client.update_conversation', new=AsyncMock()) as mock_update:
         mock_update.return_value = {
             "success": True,
             "data": {
@@ -171,7 +173,7 @@ async def test_memory_update_success():
 @pytest.mark.asyncio
 async def test_memory_update_partial():
     """Test partial memory update (only one field)"""
-    with patch('src.sekha_mcp.client.sekha_client.update_conversation', new=AsyncMock()) as mock_update:
+    with patch('sekha_mcp.client.sekha_client.update_conversation', new=AsyncMock()) as mock_update:
         mock_update.return_value = {
             "success": True,
             "data": {"updated_fields": ["folder"]}
@@ -200,7 +202,7 @@ async def test_memory_update_partial():
 @pytest.mark.asyncio
 async def test_memory_get_context_success():
     """Test getting conversation context"""
-    with patch('src.sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
         mock_get.return_value = {
             "success": True,
             "data": {
@@ -228,7 +230,7 @@ async def test_memory_get_context_success():
 @pytest.mark.asyncio
 async def test_memory_get_context_not_found():
     """Test getting context for non-existent conversation"""
-    with patch('src.sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
         mock_get.return_value = {"success": False}
         
         arguments = {"conversation_id": "nonexistent"}
@@ -245,7 +247,7 @@ async def test_memory_get_context_not_found():
 @pytest.mark.asyncio
 async def test_memory_prune_with_suggestions():
     """Test pruning with suggestions"""
-    with patch('src.sekha_mcp.client.sekha_client.prune_memory', new=AsyncMock()) as mock_prune:
+    with patch('sekha_mcp.client.sekha_client.prune_memory', new=AsyncMock()) as mock_prune:
         mock_prune.return_value = {
             "success": True,
             "data": {
@@ -265,14 +267,14 @@ async def test_memory_prune_with_suggestions():
         result = await memory_prune_tool(arguments)
         
         assert len(result) == 1
-        assert "Found 1 conversations" in result[0].text
+        assert "Found 1 conversation" in result[0].text
         assert "Old Conversation" in result[0].text
 
 
 @pytest.mark.asyncio
 async def test_memory_prune_no_suggestions():
     """Test pruning with no suggestions"""
-    with patch('src.sekha_mcp.client.sekha_client.prune_memory', new=AsyncMock()) as mock_prune:
+    with patch('sekha_mcp.client.sekha_client.prune_memory', new=AsyncMock()) as mock_prune:
         mock_prune.return_value = {
             "success": True,
             "data": {"suggestions": []}
@@ -283,3 +285,284 @@ async def test_memory_prune_no_suggestions():
         
         assert len(result) == 1
         assert "No conversations need pruning" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_update_no_fields_provided():
+    """Test update tool with no fields raises validation error"""
+    with patch('sekha_mcp.client.sekha_client.update_conversation', new=AsyncMock()) as mock_update:
+        arguments = {"conversation_id": "test-uuid"}  # No fields to update
+        
+        result = await memory_update_tool(arguments)
+        
+        assert len(result) == 1
+        assert "Validation error" in result[0].text
+        assert "at least one field" in result[0].text.lower()
+
+
+@pytest.mark.asyncio
+async def test_memory_store_validation_error_empty_messages():
+    """Test store tool validation - empty messages"""
+    arguments = {
+        "label": "Test",
+        "folder": "/tests",
+        "messages": []  # Empty - should fail
+    }
+    
+    result = await memory_store_tool(arguments)
+    
+    assert "❌" in result[0].text  # Just check for the error symbol
+    assert "too_short" in result[0].text or "validation" in result[0].text.lower()
+
+
+@pytest.mark.asyncio
+async def test_memory_search_validation_error_empty_query():
+    """Test search tool validation - empty query"""
+    arguments = {"query": "   "}  # Just whitespace
+    
+    result = await memory_search_tool(arguments)
+    
+    assert len(result) == 1
+    assert "Validation error" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_get_context_validation_error_missing_fields():
+    """Test context tool validation - API returns incomplete data"""
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+        mock_get.return_value = {
+            "success": True,
+            "data": {"label": "Test", "folder": "/"}  # Missing messages, status
+        }
+        
+        arguments = {"conversation_id": "test-uuid"}
+        result = await memory_get_context_tool(arguments)
+        
+        assert len(result) == 1
+        assert "Validation error" in result[0].text
+        assert "missing required fields" in result[0].text.lower()
+
+
+@pytest.mark.asyncio
+async def test_memory_prune_validation_error_negative_threshold():
+    """Test prune tool validation - negative threshold"""
+    arguments = {"threshold_days": -1}
+    
+    result = await memory_prune_tool(arguments)
+    
+    assert "❌ Error:" in result[0].text
+    assert "greater than or equal to 1" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_export_json_success():
+    """Test export tool to JSON format"""
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+        mock_get.return_value = {
+            "success": True,
+            "data": {
+                "conversation_id": "conv-123",
+                "label": "Test Conversation",
+                "folder": "/tests",
+                "status": "active",
+                "importance_score": 8,
+                "created_at": "2024-01-01T00:00:00Z",
+                "messages": [
+                    {"role": "user", "content": "Hello", "timestamp": "2024-01-01T00:00:00Z"}
+                ],
+                "word_count": 100,
+                "session_count": 1
+            }
+        }
+        
+        arguments = {
+            "conversation_id": "conv-123",
+            "format": "json",
+            "include_metadata": True
+        }
+        
+        result = await memory_export_tool(arguments)
+        
+        assert len(result) == 1
+        assert "conv-123" in result[0].text
+        assert "Test Conversation" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_export_markdown_success():
+    """Test export tool to Markdown format"""
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+        mock_get.return_value = {
+            "success": True,
+            "data": {
+                "conversation_id": "conv-456",
+                "label": "Markdown Export",
+                "folder": "/work",
+                "status": "active",
+                "created_at": "2024-01-01T00:00:00Z",
+                "messages": [{"role": "user", "content": "Test"}]
+            }
+        }
+        
+        arguments = {
+            "conversation_id": "conv-456",
+            "format": "markdown",
+            "include_metadata": False
+        }
+        
+        result = await memory_export_tool(arguments)
+        
+        assert len(result) == 1
+        assert "# Markdown Export" in result[0].text
+        assert "conv-456" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_export_invalid_format():
+    """Test export tool with invalid format"""
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+        mock_get.return_value = {
+            "success": True,
+            "data": {
+                "conversation_id": "conv-123",
+                "label": "Test",
+                "folder": "/",
+                "status": "active",
+                "created_at": "2024-01-01T00:00:00Z",
+                "messages": []
+            }
+        }
+        
+        arguments = {
+            "conversation_id": "conv-123",
+            "format": "xml"  # Invalid format
+        }
+        
+        result = await memory_export_tool(arguments)
+        
+        assert len(result) == 1
+        assert "Unsupported format" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_export_conversation_not_found():
+    """Test export tool when conversation doesn't exist"""
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+        mock_get.return_value = {"success": False, "error": "Not found"}
+        
+        arguments = {"conversation_id": "nonexistent"}
+        
+        result = await memory_export_tool(arguments)
+        
+        assert len(result) == 1
+        assert "Export failed" in result[0].text    
+
+
+@pytest.mark.asyncio
+async def test_memory_update_exception_during_request():
+    """Test update tool handles connection errors"""
+    with patch('sekha_mcp.client.sekha_client.update_conversation', new=AsyncMock()) as mock_update:
+        mock_update.side_effect = Exception("Connection failed")
+        
+        arguments = {
+            "conversation_id": "test-uuid",
+            "label": "Test",
+            "folder": "/tests"
+        }
+        
+        result = await memory_update_tool(arguments)
+        
+        assert len(result) == 1
+        assert "❌ Error" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_export_incomplete_metadata():
+    """Test export when metadata fields are missing"""
+    with patch('sekha_mcp.client.sekha_client.get_context', new=AsyncMock()) as mock_get:
+        mock_get.return_value = {
+            "success": True,
+            "data": {
+                "conversation_id": "conv-123",
+                "label": "Test",
+                "folder": "/",
+                "status": "active",
+                "created_at": "2024-01-01T00:00:00Z",
+                "messages": [{"role": "user", "content": "Hello"}]
+                # Missing word_count and session_count
+            }
+        }
+        
+        arguments = {
+            "conversation_id": "conv-123",
+            "format": "json",
+            "include_metadata": True
+        }
+        
+        result = await memory_export_tool(arguments)
+        
+        assert len(result) == 1
+        assert "conv-123" in result[0].text
+        assert "Test" in result[0].text
+
+
+# Add to hit models.py branches
+def test_models_enum_serialization():
+    """Test MessageRole enum serializes correctly"""
+    from sekha_mcp.models import MessageRole, Message
+    
+    msg = Message(role=MessageRole.USER, content="Test")
+    assert msg.role == MessageRole.USER
+    assert msg.role.value == "user"
+
+
+@pytest.mark.asyncio
+async def test_memory_stats_global():
+    """Test stats for all conversations"""
+    with patch('sekha_mcp.client.sekha_client.get_stats', new=AsyncMock()) as mock_stats:
+        mock_stats.return_value = {
+            "success": True,
+            "data": {
+                "total_conversations": 42,
+                "average_importance": 7.3,
+                "folders": ["/work", "/personal"]
+            }
+        }
+        
+        result = await memory_stats_tool({})
+        
+        assert len(result) == 1
+        assert "42" in result[0].text
+        assert "7.3" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_memory_stats_by_folder():
+    """Test stats for specific folder"""
+    with patch('sekha_mcp.client.sekha_client.get_stats', new=AsyncMock()) as mock_stats:
+        mock_stats.return_value = {
+            "success": True,
+            "data": {
+                "total_conversations": 15,
+                "average_importance": 8.1,
+                "folders": ["/work/projects"]
+            }
+        }
+        
+        result = await memory_stats_tool({"folder": "/work/projects"})
+        
+        assert len(result) == 1
+        assert "15" in result[0].text
+        mock_stats.assert_called_once_with(folder="/work/projects")
+
+
+@pytest.mark.asyncio
+async def test_memory_stats_api_failure():
+    """Test stats handles API failure"""
+    with patch('sekha_mcp.client.sekha_client.get_stats', new=AsyncMock()) as mock_stats:
+        mock_stats.return_value = {"success": False, "error": "Stats unavailable"}
+        
+        result = await memory_stats_tool({})
+        
+        assert len(result) == 1
+        assert "❌" in result[0].text    

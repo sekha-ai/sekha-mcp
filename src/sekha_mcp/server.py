@@ -4,13 +4,16 @@ import asyncio
 import logging
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent
 
-from config import settings
+from .config import settings
 from .tools.memory_store import memory_store_tool, MEMORY_STORE_TOOL
 from .tools.memory_search import memory_search_tool, MEMORY_SEARCH_TOOL
 from .tools.memory_update import memory_update_tool, MEMORY_UPDATE_TOOL
 from .tools.memory_get_context import memory_get_context_tool, MEMORY_GET_CONTEXT_TOOL
 from .tools.memory_prune import memory_prune_tool, MEMORY_PRUNE_TOOL
+from .tools.memory_export import memory_export_tool, MEMORY_EXPORT_TOOL
+from .tools.memory_stats import memory_stats_tool, MEMORY_STATS_TOOL
 
 # Configure logging
 logging.basicConfig(
@@ -33,6 +36,8 @@ async def list_tools():
         MEMORY_UPDATE_TOOL,
         MEMORY_GET_CONTEXT_TOOL,
         MEMORY_PRUNE_TOOL,
+        MEMORY_EXPORT_TOOL,
+        MEMORY_STATS_TOOL,
     ]
 
 
@@ -47,6 +52,8 @@ async def call_tool(name: str, arguments: dict):
         "memory_update": memory_update_tool,
         "memory_get_context": memory_get_context_tool,
         "memory_prune": memory_prune_tool,
+        "memory_export": memory_export_tool,
+        "memory_stats": memory_stats_tool,
     }
     
     if name not in tools:

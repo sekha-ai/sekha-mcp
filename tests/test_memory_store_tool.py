@@ -1,8 +1,8 @@
 # tests/test_memory_store_tool.py
 import pytest
 from unittest.mock import AsyncMock, patch
-from sekha_llm_bridge.client import sekha_client
-from sekha_llm_bridge.tools.memory_store import memory_store_tool
+from sekha_mcp.client import sekha_client
+from sekha_mcp.tools.memory_store import memory_store_tool
 
 @pytest.mark.asyncio
 async def test_memory_store_tool_success():
