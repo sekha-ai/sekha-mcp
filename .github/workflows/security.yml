@@ -20,14 +20,14 @@ jobs:
         run: |
           cargo install cargo-audit cargo-deny
           cargo audit
-          cargo deny scan
+          cargo deny check
       
       # Python security
       - name: Python security scan
         if: hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml') != ''
         run: |
           pip install safety bandit
-          safety check
+          safety scan
           bandit -r . -f json -o bandit-report.json
       
       # JavaScript security
