@@ -35,6 +35,12 @@ jobs:
         if: hashFiles('package.json') != ''
         run: npm audit
       
+      # Safety CLI
+      - name: Run Safety CLI to check for vulnerabilities
+        uses: pyupio/safety-action@v1
+        with:
+          api-key: ${{ secrets.SAFETY_API_KEY }}    
+
       # Container security
       - name: Trivy scan
         if: hashFiles('Dockerfile') != ''
@@ -43,7 +49,7 @@ jobs:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
-          output: 'trivy-results.sarif'
+          output: 'trivy-results.sarif'        
       
       - name: Upload Trivy results
         if: hashFiles('Dockerfile') != ''
