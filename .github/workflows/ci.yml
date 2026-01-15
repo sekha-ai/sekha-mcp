@@ -112,10 +112,10 @@ jobs:
           retention-days: 30
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: matrix.python-version == '3.11'
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: unittests
           name: mcp-server-py${{ matrix.python-version }}
           fail_ci_if_error: true
