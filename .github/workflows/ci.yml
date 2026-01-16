@@ -193,11 +193,12 @@ jobs:
 
       - name: Run bandit security linter
         run: |
-          pip install bandit
+          pip install "bandit[sarif]"
           bandit -r src -f sarif -o bandit-report.sarif -x tests
 
       - name: Upload security reports
         uses: actions/upload-artifact@v6
+        if: always()
         with:
           name: security-reports
           path: |
