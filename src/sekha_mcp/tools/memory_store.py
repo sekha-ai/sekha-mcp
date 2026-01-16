@@ -1,6 +1,7 @@
 """Memory Store Tool - Stores conversations in Sekha memory system"""
 
 import logging
+from typing import Any
 
 from mcp.types import TextContent, Tool
 
@@ -32,7 +33,7 @@ async def memory_store_tool(arguments: dict) -> list[TextContent]:
             raise ValueError("At least one message is required")
 
         # Convert to API format
-        conversation = {
+        conversation: dict[str, Any] = {
             "label": conv_input.label,
             "folder": conv_input.folder,
             "messages": [
