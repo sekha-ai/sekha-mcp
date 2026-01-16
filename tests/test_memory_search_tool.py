@@ -1,8 +1,11 @@
 # tests/test_memory_search_tool.py
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from sekha_mcp.client import sekha_client
 from sekha_mcp.tools.memory_search import memory_search_tool
+
 
 @pytest.mark.asyncio
 async def test_memory_search_tool_renders_results():
