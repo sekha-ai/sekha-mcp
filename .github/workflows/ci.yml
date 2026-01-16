@@ -101,7 +101,7 @@ jobs:
             --junitxml=pytest-junit.xml
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: coverage-reports-${{ matrix.python-version }}
@@ -197,7 +197,7 @@ jobs:
           bandit -r src -f sarif -o bandit-report.sarif -x tests
 
       - name: Upload security reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: security-reports
           path: |
