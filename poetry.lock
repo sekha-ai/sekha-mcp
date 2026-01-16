@@ -1635,4 +1635,4 @@ dev = ["black", "pre-commit", "pytest", "pytest-asyncio", "pytest-cov", "pytest-
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "c5395e5cb23b538bd9d3f52e399aa769833072c0330f5c46359d12011f55acc1"
+content-hash = "61b88e91ed5e9a82e6b33b411d0d1d1ca0f62dea931ac1c4b5f7da437d91abd5"

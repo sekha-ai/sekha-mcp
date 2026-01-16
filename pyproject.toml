@@ -20,7 +20,7 @@ dev = [
     "pytest-asyncio>=0.25.0",        # Latest async support
     "pytest-cov>=6.0.0",             # Latest coverage
     "pytest-xdist>=3.6.0",           # Parallel test execution
-    "black>=24.10.0",                # Latest code formatter
+    "black>=25.1.0",                # Latest code formatter
     "ruff>=0.8.0",                   # Latest linter (2025 standard)
     "pre-commit>=4.0.0",             # Latest pre-commit hooks
 ]

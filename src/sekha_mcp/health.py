@@ -1,6 +1,5 @@
 """Health check utilities for Sekha MCP Server"""
 
-
 import httpx
 from pydantic import BaseModel
 

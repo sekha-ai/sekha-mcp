@@ -456,7 +456,7 @@ async def test_memory_export_incomplete_metadata():
                 "folder": "/",
                 "status": "active",
                 "created_at": "2024-01-01T00:00:00Z",
-                "messages": [{"role": "user", "content": "Hello"}]
+                "messages": [{"role": "user", "content": "Hello"}],
                 # Missing word_count and session_count
             },
         }

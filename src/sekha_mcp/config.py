@@ -1,6 +1,5 @@
 """Configuration for Sekha MCP Server"""
 
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
