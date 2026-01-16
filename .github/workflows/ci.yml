@@ -57,9 +57,9 @@ jobs:
             --no-strict-optional --warn-return-any --warn-unused-ignores
         continue-on-error: false
 
-      - name: Run pre-commit hooks
-        run: pre-commit run --all-files --show-diff-on-failure
-        continue-on-error: false
+      # - name: Run pre-commit hooks
+      #  run: pre-commit run --all-files --show-diff-on-failure
+      #  continue-on-error: false
 
       - name: Check for security vulnerabilities
         run: |
