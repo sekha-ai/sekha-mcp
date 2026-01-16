@@ -130,14 +130,11 @@ async def test_memory_search_with_filters():
 
         # Verify the search was called correctly
         mock_search.assert_called_once_with(
-            query="filtered query",
-            limit=5,
-            filter_labels=["Engineering", "Planning"]
+            query="filtered query", limit=5, filter_labels=["Engineering", "Planning"]
         )
         # Verify result format
         assert len(result) == 1
         assert "No matching conversations" in result[0].text
-
 
 
 # ============================================
@@ -279,12 +276,11 @@ async def test_memory_update_no_fields_provided():
     """Test update tool with no fields raises validation error"""
     with patch("sekha_mcp.client.sekha_client.update_conversation", new=AsyncMock()) as mock_update:
         arguments = {"conversation_id": "test-uuid"}  # No fields to update
-        
+
         result = await memory_update_tool(arguments)
-        
+
         # Verify API was NOT called due to validation error
         mock_update.assert_not_called()
-
 
         assert len(result) == 1
         assert "Validation error" in result[0].text
