@@ -21,13 +21,14 @@ share/python-wheels/
 *.egg
 
 # Virtual environments
-venv/
+.venv/
 ENV/
 env/
 
 # Testing
 .coverage
 .pytest_cache/
+.ruff_cache/
 .tox/
 nosetests.xml
 coverage.xml
