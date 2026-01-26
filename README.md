@@ -180,7 +180,7 @@ Get memory usage statistics.
 - **Main Repo:** [sekha-controller](https://github.com/sekha-ai/sekha-controller)
 - **Docs:** [docs.sekha.dev](https://docs.sekha.dev)
 - **Website:** [sekha.dev](https://sekha.dev)
-- **Discord:** [discord.gg/sekha](https://discord.gg/sekha)
+- **Discord:** [discord.gg/sekha](https://discord.gg/gZb7U9deKH)
 
 ---
 
