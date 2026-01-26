@@ -3,11 +3,13 @@
 > **Model Context Protocol Server for Sekha Memory**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![CI Status](https://github.com/sekha-ai/sekha-mcp/workflows/CI/badge.svg)](https://github.com/sekha-ai/sekha-mcp/actions)
+[![CI Status](https://github.com/sekha-ai/sekha-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sekha-ai/sekha-mcp/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/sekha-ai/sekha-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/sekha-ai/sekha-mcp)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org)
 
+
 coming very soon:
+
 [![PyPI](https://img.shields.io/pypi/v/sekha-mcp.svg)](https://pypi.org/project/sekha-mcp/)
 
 ---
