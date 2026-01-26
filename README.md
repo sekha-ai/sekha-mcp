@@ -14,12 +14,14 @@ MCP (Model Context Protocol) server that exposes Sekha memory tools to compatibl
 **Supported Tools:**
 
 - ✅ `memory_store` - Save conversations
-- ✅ `memory_query` - Semantic search
+- ✅ `memory_search` - Semantic search
 - ✅ `memory_get_context` - Retrieve relevant context
-- ✅ `memory_create_label` - Organize conversations
-- ✅ `memory_prune_suggest` - Get cleanup recommendations
+- ✅ `memory_update` - Update conversation metadata
+- ✅ `memory_prune` - Get cleanup recommendations
 - ✅ `memory_export` - Export your data
 - ✅ `memory_stats` - View usage statistics
+
+**Total: 7 MCP tools**
 
 ---
 
@@ -40,8 +42,8 @@ MCP (Model Context Protocol) server that exposes Sekha memory tools to compatibl
 ```bash
 # Deploy Sekha stack
 git clone https://github.com/sekha-ai/sekha-docker.git
-cd sekha-docker
-docker compose up -d
+cd sekha-docker/docker
+docker compose -f docker-compose.yml -f docker-compose.full.yml up -d
 ```
 
 ### 2. Configure Claude Desktop
@@ -59,11 +61,18 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
         "--rm",
         "--network=host",
         "ghcr.io/sekha-ai/sekha-mcp:latest"
-      ]
+      ],
+      "env": {
+        "CONTROLLER_URL": "http://localhost:8080",
+        "CONTROLLER_API_KEY": "your-mcp-api-key-here"
+      }
     }
   }
 }
 ```
+
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`  
+**Linux:** `~/.config/Claude/claude_desktop_config.json`
 
 ### 3. Restart Claude Desktop
 
@@ -103,12 +112,13 @@ Store a conversation in Sekha.
 - `folder` (string, optional) - Organization folder
 - `importance` (int, optional) - 1-10 scale
 
-### memory_query
+### memory_search
 Search conversations semantically.
 
 **Parameters:**
 - `query` (string) - Search query
 - `limit` (int) - Max results
+- `folder` (string, optional) - Search within folder
 
 ### memory_get_context
 Assemble optimal context for LLM.
@@ -116,6 +126,43 @@ Assemble optimal context for LLM.
 **Parameters:**
 - `query` (string) - Context query
 - `context_budget` (int) - Token limit
+- `folders` (array, optional) - Limit to specific folders
+
+### memory_update
+Update conversation metadata.
+
+**Parameters:**
+- `conversation_id` (string) - Conversation UUID
+- `label` (string, optional) - New label
+- `folder` (string, optional) - New folder
+- `importance` (int, optional) - New importance (1-10)
+- `status` (string, optional) - active/archived
+
+### memory_prune
+Get cleanup recommendations.
+
+**Parameters:**
+- `min_age_days` (int, optional) - Minimum age
+- `max_importance` (int, optional) - Max importance to consider
+- `limit` (int, optional) - Max suggestions
+
+### memory_export
+Export conversations.
+
+**Parameters:**
+- `format` (string) - json or markdown
+- `folder` (string, optional) - Export specific folder
+
+### memory_stats
+Get memory usage statistics.
+
+**Parameters:** None
+
+**Returns:**
+- Total conversations
+- Total messages
+- Storage usage
+- Folder breakdown
 
 **[Full API Reference](https://docs.sekha.dev/api-reference/mcp-tools/)**
 
