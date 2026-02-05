@@ -1,10 +1,22 @@
-"""Configuration for Sekha MCP Server"""
+"""Configuration for Sekha MCP Server
+
+v2.0 Updates:
+- Compatible with Sekha v2.0 provider registry architecture
+- Supports multi-provider LLM routing via controller
+- No MCP-side changes needed (controller handles provider logic)
+"""
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """MCP Server configuration"""
+    """MCP Server configuration
+
+    v2.0 Compatibility:
+    - Works with both v1.x and v2.0 controllers
+    - Controller handles provider routing transparently
+    - MCP server simply forwards requests to controller API
+    """
 
     # Sekha Controller (Rust core)
     controller_url: str = "http://localhost:8080"
@@ -12,7 +24,7 @@ class Settings(BaseSettings):
 
     # Server settings
     server_name: str = "sekha-memory"
-    server_version: str = "1.0.0"
+    server_version: str = "2.0.0"  # Updated for v2.0 compatibility
 
     # Timeouts
     request_timeout: int = 30
