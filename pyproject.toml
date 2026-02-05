@@ -1,7 +1,7 @@
 [project]
 name = "sekha-mcp"
-version = "1.0.0"
-description = "Model Context Protocol server for Project Sekha - Persistent AI Memory Controller"
+version = "2.0.0"
+description = "Model Context Protocol server for Project Sekha - Persistent AI Memory Controller (v2.0 multi-provider compatible)"
 authors = [{name = "Sekha AI", email = "jeff@sekha-ai.dev"}]
 license = {text = "AGPL-3.0-or-later"}
 readme = "README.md"
