@@ -11,7 +11,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """MCP Server configuration
-    
+
     v2.0 Compatibility:
     - Works with both v1.x and v2.0 controllers
     - Controller handles provider routing transparently
