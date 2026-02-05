@@ -14,6 +14,22 @@ coming very soon:
 
 ---
 
+## 🆕 v2.0 Release - Multi-Provider Support
+
+**Sekha MCP v2.0** is now compatible with the new Sekha v2.0 multi-provider architecture!
+
+**What's New:**
+- ✅ Works with Sekha v2.0 controller's multi-provider routing
+- ✅ Automatic provider fallback (Ollama, OpenAI, Anthropic, etc.)
+- ✅ Vision support (GPT-4o, Kimi 2.5) - just include images!
+- ✅ Cost-aware model selection
+- ✅ Multi-dimensional embeddings (per-dimension ChromaDB collections)
+- ✅ **No API changes** - fully backward compatible!
+
+**Migration:** See [V2_MIGRATION.md](./V2_MIGRATION.md) for upgrade instructions.
+
+---
+
 ## What is Sekha MCP?
 
 MCP (Model Context Protocol) server that exposes Sekha memory tools to compatible LLM clients like **Claude Desktop**.
@@ -39,6 +55,7 @@ MCP (Model Context Protocol) server that exposes Sekha memory tools to compatibl
 - [Claude Desktop Integration](https://docs.sekha.dev/integrations/claude-desktop/)
 - [MCP Tools Reference](https://docs.sekha.dev/api-reference/mcp-tools/)
 - [Getting Started](https://docs.sekha.dev/getting-started/quickstart/)
+- **[v2.0 Migration Guide](./V2_MIGRATION.md)** - Upgrade to multi-provider support
 
 ---
 
@@ -47,10 +64,11 @@ MCP (Model Context Protocol) server that exposes Sekha memory tools to compatibl
 ### 1. Install Sekha
 
 ```bash
-# Deploy Sekha stack
+# Deploy Sekha v2.0 stack with multi-provider support
 git clone https://github.com/sekha-ai/sekha-docker.git
-cd sekha-docker/docker
-docker compose -f docker-compose.yml -f docker-compose.full.yml up -d
+cd sekha-docker
+git checkout feature/v2.0-provider-registry
+docker compose -f docker-compose.v2.yml up -d
 ```
 
 ### 2. Configure Claude Desktop
@@ -67,7 +85,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
         "-i",
         "--rm",
         "--network=host",
-        "ghcr.io/sekha-ai/sekha-mcp:latest"
+        "ghcr.io/sekha-ai/sekha-mcp:v2.0"
       ],
       "env": {
         "CONTROLLER_URL": "http://localhost:8080",
@@ -96,6 +114,9 @@ Sekha memory tools will now appear in Claude!
 git clone https://github.com/sekha-ai/sekha-mcp.git
 cd sekha-mcp
 
+# Checkout v2.0 branch
+git checkout feature/v2.0-provider-registry
+
 # Install
 pip install -e .
 
@@ -115,7 +136,7 @@ Store a conversation in Sekha.
 
 **Parameters:**
 - `label` (string) - Conversation label
-- `messages` (array) - Message array
+- `messages` (array) - Message array (supports images in v2.0!)
 - `folder` (string, optional) - Organization folder
 - `importance` (int, optional) - 1-10 scale
 
@@ -170,6 +191,7 @@ Get memory usage statistics.
 - Total messages
 - Storage usage
 - Folder breakdown
+- Provider stats (v2.0) - which models are being used
 
 **[Full API Reference](https://docs.sekha.dev/api-reference/mcp-tools/)**
 
@@ -178,12 +200,40 @@ Get memory usage statistics.
 ## 🔗 Links
 
 - **Main Repo:** [sekha-controller](https://github.com/sekha-ai/sekha-controller)
+- **v2.0 Migration:** [V2_MIGRATION.md](./V2_MIGRATION.md)
 - **Docs:** [docs.sekha.dev](https://docs.sekha.dev)
 - **Website:** [sekha.dev](https://sekha.dev)
 - **Discord:** [discord.gg/sekha](https://discord.gg/gZb7U9deKH)
 
 ---
 
-## 📄 License
+## 📝 Changelog
+
+### v2.0.0 (2026-02-04)
+
+**Added:**
+- Compatible with Sekha v2.0 multi-provider architecture
+- Support for vision models (images in conversations)
+- Multi-dimensional embedding support
+- Provider statistics in memory_stats
+
+**Changed:**
+- Version bumped to 2.0.0
+- Updated documentation for v2.0 features
+
+**Maintained:**
+- Full backward compatibility with v1.x API
+- No breaking changes to MCP tools
+- Works with both v1.x and v2.0 controllers
+
+### v1.0.0 (2025)
+
+- Initial release with 7 MCP tools
+- Claude Desktop integration
+- Basic memory operations
+
+---
+
+## 📝 License
 
 AGPL-3.0 - **[License Details](https://docs.sekha.dev/about/license/)**
