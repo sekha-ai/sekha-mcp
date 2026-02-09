@@ -1,6 +1,6 @@
 [project]
 name = "sekha-mcp"
-version = "2.0.0"
+version = "0.2.0"
 description = "Model Context Protocol server for Project Sekha - Persistent AI Memory Controller (v2.0 multi-provider compatible)"
 authors = [{name = "Sekha AI", email = "jeff@sekha-ai.dev"}]
 license = {text = "AGPL-3.0-or-later"}
@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.10.0",              # Latest with performance improvements
     "pydantic-settings>=2.7.0",      # Latest settings management
     "python-dotenv>=1.0.1",          # Latest env file support
+    "python-multipart>=0.0.22",      # SECURITY FIX: CVE-2026-24486
 ]
 
 [project.optional-dependencies]
