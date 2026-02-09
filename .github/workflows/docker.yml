@@ -19,6 +19,7 @@ permissions:
   contents: read
   packages: write
   id-token: write
+  security-events: write
 
 jobs:
   build-and-test:
@@ -88,11 +89,12 @@ jobs:
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
 
-      - name: Upload Trivy results
+      - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+          category: 'docker-security'  # ← Add category for clarity
 
   publish:
     name: Publish to GHCR
