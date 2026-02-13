@@ -78,6 +78,7 @@ markers = [
 sekha-mcp = "sekha_mcp.server:main"
 
 [project.urls]
-Homepage = "https://github.com/sekha-ai/sekha-mcp"
+Homepage = "https://sekha.dev"
+Documentation = "https://docs.sekha.dev"
 Repository = "https://github.com/sekha-ai/sekha-mcp"
 Issues = "https://github.com/sekha-ai/sekha-mcp/issues"
