@@ -6,9 +6,6 @@
 [![CI Status](https://github.com/sekha-ai/sekha-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sekha-ai/sekha-mcp/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/sekha-ai/sekha-mcp/branch/main/graph/badge.svg)](https://codecov.io/gh/sekha-ai/sekha-mcp)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org)
-
-coming very soon:
-
 [![PyPI](https://img.shields.io/pypi/v/sekha-mcp.svg)](https://pypi.org/project/sekha-mcp/)
 
 ---
@@ -326,35 +323,10 @@ Separate from LLM routing:
 
 ## 📝 Changelog
 
-### v0.2.0 (2026-02-04)
-
-**Added:**
-- Compatible with Sekha v0.2.0 multi-provider architecture
-- Support for vision models (images in conversations)
-- Multi-dimensional embedding support
-- Provider statistics in memory_stats
-- **Explicit Claude Code documentation and examples**
-- **Ollama + Sekha workflow guide**
-
-**Changed:**
-- Version bumped to 0.2.0
-- Updated documentation for v0.2.0 features
-- Clarified MCP works with any compatible client
-
-**Maintained:**
-- Full backward compatibility with v1.x API
-- No breaking changes to MCP tools
-- Works with both v0.1.x and v0.2.0 controllers
-
-### v0.1.0 (2025)
-
-- Initial release with 7 MCP tools
-- Claude Desktop integration
-- Basic memory operations
+See **[CHANGELOG.md](https://github.com/sekha-ai/sekha-mcp/blob/main/CHANGELOG.md)** for full release history.
 
 ---
 
 ## 📝 License
 
 AGPL-3.0 - **[License Details](https://docs.sekha.dev/about/license/)**
-```

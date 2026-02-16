@@ -6,6 +6,40 @@ authors = [{name = "Sekha AI", email = "jeff@sekha-ai.dev"}]
 license = {text = "AGPL-3.0-or-later"}
 readme = "README.md"
 requires-python = ">=3.10"
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "memory",
+    "rag",
+    "claude",
+    "claude-desktop",
+    "claude-code",
+    "embeddings",
+    "vector-database",
+    "chromadb",
+    "ollama",
+    "anthropic",
+    "openai",
+    "context-management",
+    "conversation-memory",
+    "semantic-search",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: AsyncIO",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Communications :: Chat",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "mcp>=1.2.0",                    # Latest stable MCP SDK
     "httpx>=0.28.0",                 # Latest with HTTP/2 support
@@ -78,6 +112,10 @@ markers = [
 sekha-mcp = "sekha_mcp.server:main"
 
 [project.urls]
-Homepage = "https://github.com/sekha-ai/sekha-mcp"
+Homepage = "https://sekha.dev"
+Documentation = "https://docs.sekha.dev"
 Repository = "https://github.com/sekha-ai/sekha-mcp"
-Issues = "https://github.com/sekha-ai/sekha-mcp/issues"
+"Bug Tracker" = "https://github.com/sekha-ai/sekha-mcp/issues"
+"Changelog" = "https://github.com/sekha-ai/sekha-mcp/blob/main/CHANGELOG.md"
+"Funding" = "https://github.com/sponsors/sekha-ai"
+"Discord" = "https://discord.gg/gZb7U9deKH"
